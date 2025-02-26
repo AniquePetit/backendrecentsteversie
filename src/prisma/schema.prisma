@@ -21,9 +21,15 @@ model User {
 }
 
 model Host {
-  id        String   @id @default(uuid()) // Gebruik UUID voor Host ID
-  name      String
-  properties Property[] // Relatie met eigenschappen (properties)
+  id            String   @id @default(cuid()) // Unieke ID voor de host
+  username      String   @unique // Gebruikersnaam moet uniek zijn
+  email         String   @unique // E-mail moet uniek zijn
+  password      String   // Het gehashte wachtwoord van de host
+  phoneNumber   String   // Telefoonnummer van de host
+  profilePicture String?  // Optioneel, profielafbeelding van de host
+  aboutMe       String?  // Optioneel, een korte bio over de host
+  name          String?  // Optioneel, naam van de host
+  properties    Property[] // Relatie naar de Property (als de host meerdere woningen heeft)
 }
 
 model Property {
