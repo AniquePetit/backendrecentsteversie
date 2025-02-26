@@ -1,0 +1,73 @@
+// src/prisma/schema.prisma
+
+// Definieer de datasourcenaam en provider voor SQLite
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL") // Zorg ervoor dat je een DATABASE_URL variabele hebt in je .env bestand
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ------------------- Models ---------------------
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  email     String   @unique
+  reviews   Review[] // Relatie met reviews
+  bookings  Booking[] // Relatie met boekingen
+}
+
+model Host {
+  id        String   @id @default(uuid()) // Gebruik UUID voor Host ID
+  name      String
+  properties Property[] // Relatie met eigenschappen (properties)
+}
+
+model Property {
+  id             String   @id @default(uuid()) // Gebruik UUID voor Property ID
+  title          String
+  description    String?
+  location       String
+  pricePerNight  Float
+  bedroomCount   Int?
+  bathRoomCount  Int?
+  maxGuestCount  Int?
+  hostId         String
+  host           Host     @relation(fields: [hostId], references: [id])
+  amenities      Amenity[] @relation("PropertyAmenities") // Relatie met voorzieningen
+  bookings       Booking[] // Relatie met boekingen
+  reviews        Review[]  // Relatie met reviews
+  rating         Int?
+}
+
+model Booking {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  propertyId   String
+  checkInDate  DateTime
+  checkOutDate DateTime
+  user         User     @relation(fields: [userId], references: [id])
+  property     Property @relation(fields: [propertyId], references: [id])
+}
+
+model Amenity {
+  id        Int       @id @default(autoincrement())
+  name      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  properties Property[] @relation("PropertyAmenities") // Relatie met properties
+}
+
+model Review {
+  id         Int      @id @default(autoincrement()) // Auto-increment ID
+  userId     Int
+  propertyId String   // UUID voor propertyId
+  rating     Int
+  comment    String
+  createdAt  DateTime @default(now()) // Voeg createdAt toe voor automatisch tijdstempel
+  User       User     @relation(fields: [userId], references: [id]) // Relatie met User
+  Property   Property @relation(fields: [propertyId], references: [id]) // Relatie met Property
+}
