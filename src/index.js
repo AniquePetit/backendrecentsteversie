@@ -3,12 +3,13 @@ import express from 'express';
 import cors from 'cors';
 
 import userRoutes from './routes/users.js';
-import authRoutes from './routes/auth.js';  // Zorg ervoor dat dit klopt
-import propertyRoutes from './routes/properties.js';  // Voeg hier de properties route toe
-import hostRoutes from './routes/hosts.js'; // Nieuwe route importeren
-import amenityRoutes from './routes/amenities.js';  // Correcte import voor default export
+import authRoutes from './routes/auth.js'; 
+import propertyRoutes from './routes/properties.js';  
+import hostRoutes from './routes/hosts.js'; 
+import amenityRoutes from './routes/amenities.js';  
 import bookingRoutes from './routes/bookings.js';
-import reviewRoutes from './routes/reviews.js';  // Voeg deze regel toe
+import reviewRoutes from './routes/reviews.js';
+
 
 
 const app = express();
@@ -28,6 +29,7 @@ app.use('/hosts', hostRoutes);  // Voeg de hosts route toe
 app.use('/amenities', amenityRoutes);  // ✅ Routes voor voorzieningen
 app.use('/bookings', bookingRoutes);  // Voeg de bookings route toe
 app.use('/reviews', reviewRoutes);  // Voeg de review route toe
+
 
 
 // Start de server
