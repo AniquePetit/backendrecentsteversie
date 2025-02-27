@@ -1,0 +1,78 @@
+// src/prisma/schema.prisma
+
+// Definieer de datasourcenaam en provider voor SQLite
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL") // Zorg ervoor dat je een DATABASE_URL variabele hebt in je .env bestand
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ------------------- Models ---------------------
+
+model User {
+  id           Int    @id @default(autoincrement())
+  username     String @unique
+  password     String
+  name         String
+  email        String
+  phoneNumber  String
+  pictureUrl   String
+}
+
+model Host {
+  id            String   @id @default(cuid()) // Unieke ID voor de host
+  username      String   @unique // Gebruikersnaam moet uniek zijn
+  password      String   // Het gehashte wachtwoord van de host
+  name          String
+  email         String    
+  phoneNumber   String   // Telefoonnummer van de host
+  profilePicture String?  // Optioneel, profielafbeelding van de host
+  aboutMe       String?  // Optioneel, een korte bio over de host
+  listings      Property[] // Relatie naar de Property (als de host meerdere woningen heeft)
+}
+
+model Property {
+  id             String   @id @default(uuid()) // Gebruik UUID voor Property ID als @id
+  hostId         String   // Geen @id hier, het is een relatie
+  title          String
+  description    String
+  location       String
+  pricePerNight  Decimal
+  bedroomCount   Int
+  bathRoomCount  Int
+  maxGuestCount  Int
+  host           Host     @relation(fields: [hostId], references: [id]) // Relatie naar Host
+  amenities      Amenity[] @relation("PropertyAmenities") // Relatie met voorzieningen
+  bookings       Booking[] // Relatie met boekingen
+  reviews        Review[]  // Relatie met reviews
+  rating         Int
+}
+
+model Booking {
+  id           String @id @default(uuid()) // Gebruik UUID voor Booking ID als @id
+  userId       String // Geen @id hier, gewoon een veld
+  propertyId   String // Geen @id hier, gewoon een veld
+  checkInDate  DateTime
+  checkOutDate DateTime
+  numberOfGuests   Int
+  totalPrice        Int
+  property        Property @relation(fields: [propertyId], references: [id]) // Relatie naar Property
+}
+
+model Amenity {
+  id        String @id @default(uuid()) // UUID voor Amenity ID als @id
+  name      String
+  properties Property[] @relation("PropertyAmenities") // Relatie naar Property (tegenovergestelde kant van de relatie)
+}
+
+model Review {
+  id           String @id @default(uuid()) // Gebruik UUID voor Review ID als @id
+  userId     String // Geen @id hier, gewoon een veld
+  propertyId String // Geen @id hier, gewoon een veld
+  rating     Int
+  comment    String
+  property   Property @relation(fields: [propertyId], references: [id]) // Relatie naar Property
+}
