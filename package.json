@@ -9,7 +9,7 @@
     "test-positive": "newman run \"./postman/collections/Bookings API.json\" -e \"./postman/environments/Local.postman_environment.json\"",
     "test-negative": "newman run \"./postman/collections/Bookings API Negative.json\" -e \"./postman/environments/Local.postman_environment.json\"",
     "test": "npm run test-positive && npm run test-negative",
-    "seed": "npx prisma db seed --schema=src/prisma/schema.prisma",
+    "seed": "node src/prisma/seed.js",
     "prisma-migrate": "npx prisma migrate dev --schema=src/prisma/schema.prisma"
   },
   "prisma": {

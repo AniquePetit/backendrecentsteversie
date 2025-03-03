@@ -1,7 +1,6 @@
+// In bookings.js
 import express from 'express';
-import * as bookingService from '../services/bookingService.js'; // Named import gebruiken
-// Import de authMiddleware als je die wilt gebruiken
-// import authMiddleware from '../middleware/authMiddleware.js';
+import * as bookingService from '../services/bookingService.js';
 
 const router = express.Router();
 
@@ -15,78 +14,48 @@ router.get('/', async (req, res) => {
   }
 });
 
-// ✅ Haal een specifieke boeking op
-router.get('/:id', async (req, res) => {
-  try {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) return res.status(400).json({ message: 'Ongeldige boeking ID' });
-
-    const booking = await bookingService.getBookingById(id);
-    if (!booking) {
-      return res.status(404).json({ message: 'Boeking niet gevonden' });
-    }
-    res.json(booking);
-  } catch (error) {
-    res.status(500).json({ message: 'Fout bij ophalen van boeking' });
-  }
-});
-
 // ✅ Maak een nieuwe boeking aan
 router.post('/', async (req, res) => {
   try {
-    const { userId, propertyId, checkIn, checkOut, guestCount } = req.body;
+    const { userId, propertyId, checkinDate, checkoutDate, numberOfGuests, totalPrice, bookingStatus } = req.body;
 
-    if (!userId || !propertyId || !checkIn || !checkOut || !guestCount) {
+    // Log de ontvangen body voor debugging
+    console.log('Ontvangen body:', req.body);
+
+    // Validatie van de velden
+    if (!userId || !propertyId || !checkinDate || !checkoutDate || !numberOfGuests || !totalPrice || !bookingStatus) {
       return res.status(400).json({ message: 'Alle velden zijn verplicht' });
     }
 
-    // Verzend de boeking naar de service voor creatie
-    const newBooking = await bookingService.createBooking(req.body);
+    // Parse de datums
+    const parsedCheckInDate = new Date(checkinDate);
+    const parsedCheckOutDate = new Date(checkoutDate);
+
+    if (isNaN(parsedCheckInDate.getTime()) || isNaN(parsedCheckOutDate.getTime())) {
+      return res.status(400).json({ message: 'Ongeldige datums' });
+    }
+
+    // Controleer of het totaalbedrag een geldig getal is
+    if (isNaN(totalPrice) || totalPrice <= 0) {
+      return res.status(400).json({ message: 'Totaalbedrag moet een geldig getal zijn' });
+    }
+
+    // Maak de boeking aan
+    const newBooking = await bookingService.createBooking({
+      userId,
+      propertyId,
+      checkInDate: parsedCheckInDate,
+      checkOutDate: parsedCheckOutDate,
+      numberOfGuests,
+      totalPrice,
+      bookingStatus
+    });
+
     res.status(201).json(newBooking);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: 'Fout bij aanmaken van boeking' });
   }
 });
 
-// ✅ Update een bestaande boeking
-router.put('/:id', async (req, res) => {
-  try {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) return res.status(400).json({ message: 'Ongeldige boeking ID' });
-
-    const { userId, propertyId, checkIn, checkOut, guestCount } = req.body;
-
-    if (!userId || !propertyId || !checkIn || !checkOut || !guestCount) {
-      return res.status(400).json({ message: 'Alle velden zijn verplicht' });
-    }
-
-    const updatedBooking = await bookingService.updateBooking(id, req.body);
-    if (!updatedBooking) {
-      return res.status(404).json({ message: 'Boeking niet gevonden of geen rechten' });
-    }
-
-    res.json(updatedBooking);
-  } catch (error) {
-    res.status(500).json({ message: 'Fout bij updaten van boeking' });
-  }
-});
-
-// ✅ Verwijder een boeking
-router.delete('/:id', async (req, res) => {
-  try {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) return res.status(400).json({ message: 'Ongeldige boeking ID' });
-
-    const deleted = await bookingService.deleteBooking(id);
-    if (!deleted) {
-      return res.status(404).json({ message: 'Boeking niet gevonden of geen rechten' });
-    }
-
-    res.json({ message: 'Boeking verwijderd' });
-  } catch (error) {
-    res.status(500).json({ message: 'Fout bij verwijderen van boeking' });
-  }
-});
-
-// Exporteer de router
-export default router;
+export default router; // Dit zorgt voor de default export

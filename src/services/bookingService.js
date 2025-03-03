@@ -12,65 +12,36 @@ export const getAllBookings = async () => {
   }
 };
 
-// ✅ Haal een specifieke boeking op via ID
-export const getBookingById = async (id) => {
-  try {
-    const booking = await prisma.booking.findUnique({
-      where: { id: parseInt(id) },
-    });
-    return booking;
-  } catch (error) {
-    console.error(`Error getting booking with ID ${id}:`, error);
-    throw new Error('Fout bij ophalen van boeking');
-  }
-};
-
 // ✅ Maak een nieuwe boeking aan
 export const createBooking = async (data) => {
   try {
-    if (!data.propertyId || !data.userId || !data.startDate || !data.endDate) {
+    // Parse de datums
+    const checkInDate = new Date(data.checkInDate);
+    const checkOutDate = new Date(data.checkOutDate);
+
+    if (isNaN(checkInDate) || isNaN(checkOutDate)) {
+      throw new Error('Ongeldige datums');
+    }
+
+    // Controleer of de velden aanwezig zijn
+    if (!data.userId || !data.propertyId || !data.numberOfGuests || !data.totalPrice) {
       throw new Error('Alle vereiste velden moeten ingevuld zijn');
     }
 
     const newBooking = await prisma.booking.create({
       data: {
-        propertyId: data.propertyId,
         userId: data.userId,
-        startDate: data.startDate,
-        endDate: data.endDate,
-        status: 'Pending',
+        propertyId: data.propertyId,
+        checkInDate: checkInDate,
+        checkOutDate: checkOutDate,
+        numberOfGuests: data.numberOfGuests,
+        totalPrice: data.totalPrice,
       },
     });
+
     return newBooking;
   } catch (error) {
     console.error('Error creating booking:', error);
     throw new Error('Fout bij aanmaken van boeking');
-  }
-};
-
-// ✅ Update een boeking
-export const updateBooking = async (id, data) => {
-  try {
-    const updatedBooking = await prisma.booking.update({
-      where: { id: parseInt(id) },
-      data,
-    });
-    return updatedBooking;
-  } catch (error) {
-    console.error(`Error updating booking with ID ${id}:`, error);
-    throw new Error('Fout bij updaten van boeking');
-  }
-};
-
-// ✅ Verwijder een boeking
-export const deleteBooking = async (id) => {
-  try {
-    const deletedBooking = await prisma.booking.delete({
-      where: { id: parseInt(id) },
-    });
-    return deletedBooking;
-  } catch (error) {
-    console.error(`Error deleting booking with ID ${id}:`, error);
-    throw new Error('Fout bij verwijderen van boeking');
   }
 };

@@ -1,6 +1,11 @@
 import express from 'express';
-import { getAllAmenities } from '../services/amenityService.js';
-// import authMiddleware from '../middleware/authMiddleware.js';  // Middleware is uitcommentarieerd
+import { 
+  getAllAmenities, 
+  getAmenityById, 
+  createAmenity, 
+  updateAmenity, 
+  deleteAmenity 
+} from '../services/amenityService.js';
 
 const router = express.Router();
 
@@ -18,10 +23,9 @@ router.get('/', async (req, res) => {
 // ✅ Haal een specifieke voorziening op
 router.get('/:id', async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) return res.status(400).json({ message: 'Ongeldige ID' });
+    const { id } = req.params;
 
-    const amenity = await amenityService.getAmenityById(id);
+    const amenity = await getAmenityById(id);
     if (!amenity) {
       return res.status(404).json({ message: 'Voorziening niet gevonden' });
     }
@@ -32,13 +36,13 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// ✅ Maak een nieuwe voorziening aan (beveiligd)
-router.post('/', /* authMiddleware, */ async (req, res) => {  // authMiddleware is uitcommentarieerd
+// ✅ Maak een nieuwe voorziening aan
+router.post('/', async (req, res) => {  
   try {
     const { name } = req.body;
     if (!name) return res.status(400).json({ message: 'Naam is verplicht' });
 
-    const newAmenity = await amenityService.createAmenity(req.body);
+    const newAmenity = await createAmenity({ name }); // 🛠️ Fix: Stuur alleen `name`
     res.status(201).json(newAmenity);
   } catch (error) {
     console.error(error);
@@ -46,13 +50,11 @@ router.post('/', /* authMiddleware, */ async (req, res) => {  // authMiddleware 
   }
 });
 
-// ✅ Update een bestaande voorziening (beveiligd)
-router.put('/:id', /* authMiddleware, */ async (req, res) => {  // authMiddleware is uitcommentarieerd
+// ✅ Update een bestaande voorziening
+router.put('/:id', async (req, res) => {  
   try {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) return res.status(400).json({ message: 'Ongeldige ID' });
-
-    const updatedAmenity = await amenityService.updateAmenity(id, req.body);
+    const { id } = req.params;
+    const updatedAmenity = await updateAmenity(id, req.body);
     if (!updatedAmenity) {
       return res.status(404).json({ message: 'Voorziening niet gevonden' });
     }
@@ -63,16 +65,16 @@ router.put('/:id', /* authMiddleware, */ async (req, res) => {  // authMiddlewar
   }
 });
 
-// ✅ Verwijder een voorziening (beveiligd)
-router.delete('/:id', /* authMiddleware, */ async (req, res) => {  // authMiddleware is uitcommentarieerd
+// ✅ Verwijder een voorziening
+router.delete('/:id', async (req, res) => {  
   try {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) return res.status(400).json({ message: 'Ongeldige ID' });
-
-    const deleted = await amenityService.deleteAmenity(id);
+    const { id } = req.params;
+    const deleted = await deleteAmenity(id);
+    
     if (!deleted) {
       return res.status(404).json({ message: 'Voorziening niet gevonden' });
     }
+    
     res.json({ message: 'Voorziening verwijderd' });
   } catch (error) {
     console.error(error);
@@ -80,4 +82,4 @@ router.delete('/:id', /* authMiddleware, */ async (req, res) => {  // authMiddle
   }
 });
 
-export default router;  // Default export
+export default router;

@@ -13,14 +13,16 @@ generator client {
 // ------------------- Models ---------------------
 
 model User {
-  id           Int    @id @default(autoincrement())
+  id           String @id @default(uuid())  // Verander naar UUID
   username     String @unique
   password     String
   name         String
   email        String
   phoneNumber  String
+  profilePicture String? // Dit veld is optioneel
   pictureUrl   String
 }
+
 
 model Host {
   id            String   @id @default(cuid()) // Unieke ID voor de host
