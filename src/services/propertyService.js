@@ -39,17 +39,18 @@ const getPropertyById = async (id) => {
 
 // Functie om een nieuwe accommodatie aan te maken
 const createProperty = async (hostId, propertyData) => {
-  // Checken of de host met de gegeven userId bestaat
-  const host = await prisma.host.findUnique({
-    where: { id: hostId },
-  });
-
-  if (!host) {
-    throw new Error('Host met de opgegeven userId bestaat niet');
-  }
-
   try {
-    // Nieuwe accommodatie aanmaken en verbinden met de host
+    // Controleer of de host bestaat met het gegeven hostId
+    const host = await prisma.host.findUnique({
+      where: { id: hostId },
+    });
+
+    // Als de host niet bestaat, gooi dan een duidelijke foutmelding
+    if (!host) {
+      throw new Error(`Host met id ${hostId} bestaat niet in de database.`);
+    }
+
+    // Maak de nieuwe accommodatie aan als de host gevonden is
     const newProperty = await prisma.property.create({
       data: {
         title: propertyData.title,
@@ -59,28 +60,29 @@ const createProperty = async (hostId, propertyData) => {
         bedroomCount: propertyData.bedroomCount,
         bathRoomCount: propertyData.bathRoomCount,
         maxGuestCount: propertyData.maxGuestCount,
-        rating: propertyData.rating || 0, // Als rating niet meegegeven, gebruik 0 als default
+        rating: propertyData.rating || 0,  // Als geen rating, stel standaard op 0
         host: {
-          connect: { id: hostId }, // Koppel het property aan de host via hostId
+          connect: { id: hostId },  // Verbind de accommodatie met de host
         },
       },
     });
-    return newProperty;
+
+    return newProperty;  // Retourneer de nieuwe accommodatie
   } catch (error) {
-    console.error('Fout bij aanmaken van accommodatie:', error);
-    throw new Error('Fout bij aanmaken van accommodatie');
+    console.error('Fout bij het aanmaken van accommodatie:', error);
+    throw new Error(`Fout bij aanmaken van accommodatie: ${error.message}`);
   }
 };
 
 // Functie om een accommodatie bij te werken
 const updateProperty = async (id, hostId, propertyData) => {
-  const property = await prisma.property.findUnique({
-    where: { id },
-  });
+  try {
+    const property = await prisma.property.findUnique({
+      where: { id },
+    });
 
-  if (property && property.hostId === hostId) {
-    try {
-      // Accommodatie bijwerken
+    if (property && property.hostId === hostId) {
+      // Update de accommodatie als de hostId klopt
       const updatedProperty = await prisma.property.update({
         where: { id },
         data: {
@@ -91,38 +93,40 @@ const updateProperty = async (id, hostId, propertyData) => {
           bedroomCount: propertyData.bedroomCount,
           bathRoomCount: propertyData.bathRoomCount,
           maxGuestCount: propertyData.maxGuestCount,
-          rating: propertyData.rating || 0, // Als rating niet is meegegeven, gebruik 0 als default
+          rating: propertyData.rating || 0,
         },
       });
+
       return updatedProperty;
-    } catch (error) {
-      console.error('Fout bij updaten van accommodatie:', error);
-      throw new Error(`Fout bij updaten van accommodatie: ${error.message}`);
+    } else {
+      throw new Error('Accommodatie niet gevonden of geen rechten');
     }
-  } else {
-    throw new Error('Accommodatie niet gevonden of geen rechten');
+  } catch (error) {
+    console.error('Fout bij updaten van accommodatie:', error);
+    throw new Error(`Fout bij updaten van accommodatie: ${error.message}`);
   }
 };
 
 // Functie om een accommodatie te verwijderen
 const deleteProperty = async (id, hostId) => {
-  const property = await prisma.property.findUnique({
-    where: { id },
-  });
+  try {
+    const property = await prisma.property.findUnique({
+      where: { id },
+    });
 
-  if (property && property.hostId === hostId) {
-    try {
-      // Accommodatie verwijderen
+    if (property && property.hostId === hostId) {
+      // Verwijder de accommodatie als de hostId klopt
       const deletedProperty = await prisma.property.delete({
         where: { id },
       });
+
       return deletedProperty;
-    } catch (error) {
-      console.error('Fout bij verwijderen van accommodatie:', error);
-      throw new Error(`Fout bij verwijderen van accommodatie: ${error.message}`);
+    } else {
+      throw new Error('Accommodatie niet gevonden of geen rechten');
     }
-  } else {
-    throw new Error('Accommodatie niet gevonden of geen rechten');
+  } catch (error) {
+    console.error('Fout bij verwijderen van accommodatie:', error);
+    throw new Error(`Fout bij verwijderen van accommodatie: ${error.message}`);
   }
 };
 

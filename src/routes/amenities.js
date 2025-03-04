@@ -54,10 +54,23 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {  
   try {
     const { id } = req.params;
-    const updatedAmenity = await updateAmenity(id, req.body);
-    if (!updatedAmenity) {
+    const { name } = req.body;
+
+    // Validatie van naam
+    if (!name) {
+      return res.status(400).json({ message: 'Naam is verplicht' });
+    }
+
+    // Zorg ervoor dat de voorziening bestaat
+    const existingAmenity = await getAmenityById(id);
+    if (!existingAmenity) {
       return res.status(404).json({ message: 'Voorziening niet gevonden' });
     }
+
+    // Werk de voorziening bij
+    const updatedAmenity = await updateAmenity(id, { name });
+
+    // Geef de bijgewerkte voorziening terug
     res.json(updatedAmenity);
   } catch (error) {
     console.error(error);
@@ -69,13 +82,18 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {  
   try {
     const { id } = req.params;
-    const deleted = await deleteAmenity(id);
-    
-    if (!deleted) {
+
+    // Controleer of de voorziening bestaat
+    const existingAmenity = await getAmenityById(id);
+    if (!existingAmenity) {
       return res.status(404).json({ message: 'Voorziening niet gevonden' });
     }
-    
-    res.json({ message: 'Voorziening verwijderd' });
+
+    // Verwijder de voorziening
+    const deletedAmenity = await deleteAmenity(id);
+
+    // Geef een succesbericht terug
+    res.json({ message: 'Voorziening verwijderd', amenity: deletedAmenity });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Fout bij verwijderen van voorziening' });

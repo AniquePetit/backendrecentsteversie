@@ -1,33 +1,32 @@
 import express from 'express';
-import { getAllReviews, getReviewById, createReview } from '../services/reviewService.js';
+import { getAllReviews, getReviewById, createReview, updateReview, deleteReview } from '../services/reviewService.js';
 
 const router = express.Router();
 
 // ✅ Haal alle reviews op
 router.get('/', async (req, res) => {
   try {
-    const reviews = await getAllReviews();  // Haalt alle reviews op via de service
-    res.json(reviews);  // Retourneer de lijst van reviews als JSON
+    const reviews = await getAllReviews();
+    res.json(reviews);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Fout bij ophalen van reviews' });  // Foutmelding bij het ophalen van reviews
+    res.status(500).json({ message: 'Fout bij ophalen van reviews' });
   }
 });
 
 // ✅ Haal een specifieke review op via ID
 router.get('/:id', async (req, res) => {
   try {
-    const id = parseInt(req.params.id);  // Verkrijg het review ID uit de URL parameter
-    if (isNaN(id)) return res.status(400).json({ message: 'Ongeldig ID' });  // Controleer of het ID een getal is
-
-    const review = await getReviewById(id);  // Haal de specifieke review op via de service
+    const id = req.params.id; // ✅ UUID blijft een string!
+    
+    const review = await getReviewById(id);
     if (!review) {
-      return res.status(404).json({ message: 'Review niet gevonden' });  // Als er geen review wordt gevonden
+      return res.status(404).json({ message: 'Review niet gevonden' });
     }
-    res.json(review);  // Retourneer de specifieke review als JSON
+    res.json(review);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Fout bij ophalen van review' });  // Foutmelding bij het ophalen van een review
+    res.status(500).json({ message: 'Fout bij ophalen van review' });
   }
 });
 
@@ -36,18 +35,52 @@ router.post('/', async (req, res) => {
   try {
     const { userId, propertyId, rating, comment } = req.body;
 
-    // Controleer of alle vereiste velden aanwezig zijn
     if (!userId || !propertyId || !rating || !comment) {
       return res.status(400).json({ message: 'Alle velden zijn verplicht' });
     }
 
-    // Maak de review aan via de service
     const newReview = await createReview(req.body);
-    res.status(201).json(newReview);  // Retourneer de nieuwe review als JSON
+    res.status(201).json(newReview);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Fout bij aanmaken van review' });  // Foutmelding bij het aanmaken van een review
+    res.status(500).json({ message: 'Fout bij aanmaken van review' });
   }
 });
 
-export default router;  // Exporteer de router
+// ✅ **Werk een bestaande review bij (PUT)**
+router.put('/:id', async (req, res) => {
+  try {
+    const id = req.params.id; // ✅ UUID blijft een string!
+    
+    const updatedReview = await updateReview(id, req.body);
+
+    if (!updatedReview) {
+      return res.status(404).json({ message: 'Review niet gevonden' });
+    }
+
+    res.json(updatedReview);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Fout bij bijwerken van review' });
+  }
+});
+
+// ✅ **Verwijder een review via ID (DELETE)**
+router.delete('/:id', async (req, res) => {
+  try {
+    const id = req.params.id; // Haal de review ID op uit de URL
+
+    const deletedReview = await deleteReview(id); // Verwijder de review via de servicefunctie
+
+    if (!deletedReview) {
+      return res.status(404).json({ message: 'Review niet gevonden' });
+    }
+
+    res.status(200).json({ message: 'Review succesvol verwijderd' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Fout bij verwijderen van review' });
+  }
+});
+
+export default router;

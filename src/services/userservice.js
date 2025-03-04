@@ -1,17 +1,69 @@
 import prisma from '../prisma/prismaClient.js'; // Zorg ervoor dat dit klopt met jouw import
-import bcrypt from 'bcrypt'; // Gebruik bcrypt om wachtwoorden te hashen
+import bcrypt from 'bcrypt';
 
-// Haal alle gebruikers op
-const getAllUsers = async () => {
+// Haal een gebruiker op via ID
+const getUserById = async (id) => {
+  return await prisma.user.findUnique({
+    where: { id: id },  // Zoek op basis van het ID
+  });
+};
+
+// Werk een gebruiker bij
+const updateUser = async (id, userData) => {
   try {
-    return await prisma.user.findMany(); // Haal alle gebruikers op
+    // Zoek de gebruiker op basis van het ID
+    const user = await prisma.user.findUnique({
+      where: { id: id },
+    });
+
+    if (!user) {
+      throw new Error('Gebruiker niet gevonden');
+    }
+
+    // Update de gegevens van de gebruiker
+    return await prisma.user.update({
+      where: { id: id },
+      data: {
+        name: userData.name || user.name,  // Als naam niet wordt meegegeven, gebruik de bestaande naam
+        email: userData.email || user.email,  // Als email niet wordt meegegeven, gebruik de bestaande email
+        phoneNumber: userData.phoneNumber || user.phoneNumber,  // Als phoneNumber niet wordt meegegeven, gebruik de bestaande telefoonnummer
+        pictureUrl: userData.pictureUrl || user.pictureUrl,  // Als pictureUrl niet wordt meegegeven, gebruik de bestaande pictureUrl
+      },
+    });
   } catch (error) {
-    console.error('Fout bij het ophalen van gebruikers:', error);
-    throw new Error('Fout bij het ophalen van gebruikers');
+    console.error('Fout bij het updaten van gebruiker:', error);
+    throw error;
   }
 };
 
-// Functie om een nieuwe gebruiker aan te maken
+// Verwijder een gebruiker
+const deleteUser = async (id) => {
+  try {
+    // Zoek de gebruiker op basis van het ID
+    const user = await prisma.user.findUnique({
+      where: { id: id },
+    });
+
+    if (!user) {
+      throw new Error('Gebruiker niet gevonden');
+    }
+
+    // Verwijder de gebruiker
+    return await prisma.user.delete({
+      where: { id: id },
+    });
+  } catch (error) {
+    console.error('Fout bij het verwijderen van gebruiker:', error);
+    throw error;
+  }
+};
+
+// Haal alle gebruikers op
+const getAllUsers = async () => {
+  return await prisma.user.findMany();  // Haal alle gebruikers op
+};
+
+// Maak een nieuwe gebruiker aan
 const createUser = async (userData) => {
   try {
     // Valideer de gegevens
@@ -22,7 +74,7 @@ const createUser = async (userData) => {
     // Controleer of de gebruiker al bestaat door naar het unieke 'username' te zoeken
     const existingUserByUsername = await prisma.user.findUnique({
       where: {
-        username: userData.username,  // Zoek op basis van de unieke username
+        username: userData.username,  // Zoek op basis van het unieke username
       },
     });
 
@@ -63,4 +115,4 @@ const createUser = async (userData) => {
   }
 };
 
-export { getAllUsers, createUser };  // Exporteer zowel de getAllUsers als de createUser functie
+export { getAllUsers, createUser, getUserById, updateUser, deleteUser };

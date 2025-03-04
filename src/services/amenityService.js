@@ -10,7 +10,7 @@ export const getAllAmenities = async () => {
 // ✅ Haal één voorziening op via ID
 export const getAmenityById = async (id) => {
   return await prisma.amenity.findUnique({
-    where: { id }, // 🛠️ Fix: Prisma verwacht een string, geen parseInt
+    where: { id },
   });
 };
 
@@ -20,7 +20,7 @@ export const createAmenity = async (data) => {
 
   return await prisma.amenity.create({
     data: {
-      name: data.name, // 🛠️ Fix: Stuur GEEN `id` mee
+      name: data.name,
     },
   });
 };
@@ -28,7 +28,7 @@ export const createAmenity = async (data) => {
 // ✅ Update een voorziening
 export const updateAmenity = async (id, data) => {
   return await prisma.amenity.update({
-    where: { id }, // 🛠️ Fix: Prisma verwacht een string als ID
+    where: { id },
     data,
   });
 };
@@ -37,9 +37,9 @@ export const updateAmenity = async (id, data) => {
 export const deleteAmenity = async (id) => {
   try {
     return await prisma.amenity.delete({
-      where: { id }, // 🛠️ Fix: Prisma verwacht een string als ID
+      where: { id },
     });
   } catch (error) {
-    return null; // 🛠️ Fix: Geef `null` terug als de voorziening niet bestaat
+    return null; // Als de voorziening niet bestaat, geef null terug
   }
 };

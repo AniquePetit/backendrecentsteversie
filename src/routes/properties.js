@@ -15,7 +15,8 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ message: 'Vereiste velden ontbreken' });
     }
 
-    // Verstuur de gegevens naar de service
+    console.log(`HostId ontvangen: ${hostId}`); // Log de hostId voor debuggen
+
     const newProperty = await propertyService.createProperty(hostId, req.body);
     res.status(201).json(newProperty);  // Stuur succesantwoord terug
   } catch (error) {
@@ -28,7 +29,7 @@ router.post('/', async (req, res) => {
 router.get('/', async (req, res) => {
   try {
     const properties = await propertyService.getAllProperties();
-    res.json(properties);
+    res.json(properties);  // Stuur de lijst met accommodaties terug
   } catch (error) {
     console.error('Fout bij ophalen van accommodaties:', error);
     res.status(500).json({ message: 'Fout bij ophalen van accommodaties', error: error.message });
@@ -39,13 +40,15 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const property = await propertyService.getPropertyById(req.params.id);
+    
     if (!property) {
       return res.status(404).json({ message: 'Accommodatie niet gevonden' });
     }
-    res.json(property);
+    
+    res.json(property);  // Stuur de accommodatie terug als JSON
   } catch (error) {
-    console.error('Fout bij ophalen van accommodatie via ID:', error);
-    res.status(500).json({ message: 'Fout bij ophalen van accommodatie via ID', error: error.message });
+    console.error('Fout bij ophalen van accommodatie:', error);
+    res.status(500).json({ message: 'Fout bij ophalen van accommodatie', error: error.message });
   }
 });
 
@@ -54,7 +57,7 @@ router.put('/:id', async (req, res) => {
   try {
     const { hostId } = req.body;  // Verkrijg de hostId vanuit de body
     const updatedProperty = await propertyService.updateProperty(req.params.id, hostId, req.body);
-    res.json(updatedProperty);
+    res.json(updatedProperty);  // Stuur de bijgewerkte accommodatie terug
   } catch (error) {
     console.error('Fout bij bijwerken van accommodatie:', error);
     res.status(500).json({ message: 'Fout bij bijwerken van accommodatie', error: error.message });
@@ -63,14 +66,14 @@ router.put('/:id', async (req, res) => {
 
 // DELETE route voor het verwijderen van een accommodatie
 router.delete('/:id', async (req, res) => {
-  const { hostId } = req.body; // Verkrijg de hostId vanuit de body
+  const { hostId } = req.body;  // Verkrijg de hostId vanuit de body
   try {
     const deleted = await propertyService.deleteProperty(req.params.id, hostId);
-    res.json({ message: 'Accommodatie verwijderd', property: deleted });
+    res.json({ message: 'Accommodatie verwijderd', property: deleted });  // Bevestig dat de accommodatie verwijderd is
   } catch (error) {
     console.error('Fout bij verwijderen van accommodatie:', error);
     res.status(500).json({ message: 'Fout bij verwijderen van accommodatie', error: error.message });
   }
 });
 
-export default router;
+export default router;  // Exporteer de router zodat deze gebruikt kan worden in je hoofdapplicatie
